@@ -1,18 +1,17 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import { Stack } from 'expo-router';
+import { useEffect, useState } from 'react';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { loadAppFonts } from '../theme/fonts';
 
-SplashScreen.preventAutoHideAsync();
+// 堆疊式導覽：不顯示標題列與底部分頁，適合遊戲式全螢幕畫面。
+// 啟動時先載入字體（通常不到一秒），載入完成才顯示畫面，避免文字先出現系統字型再跳成粉圓。
+export default function RootLayout() {
+  const [ready, setReady] = useState(false);
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
-  );
+  useEffect(() => {
+    loadAppFonts().finally(() => setReady(true));
+  }, []);
+
+  if (!ready) return null;
+  return <Stack screenOptions={{ headerShown: false, animation: 'fade' }} />;
 }

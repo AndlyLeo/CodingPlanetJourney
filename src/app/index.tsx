@@ -1,266 +1,87 @@
-import { useWindowDimensions } from "react-native";
+import { useRouter } from 'expo-router';
 import {
-  SafeAreaView,
-  ScrollView,
+  Image,
+  StatusBar,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
-} from "react-native";
+  useWindowDimensions,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function HomeScreen() {
-  const { width, height, fontScale } = useWindowDimensions();
+import { CandyButton } from '../components/game/candy-button';
+import { strings } from '../i18n';
 
-  const isPhone = width < 600;
-  const isWide = width >= 900;
-  const isLandscape = width > height;
+// 三層結構：背景層（純背景）→ 標題 logo 層（透明 PNG）→ 按鈕層（程式繪製，文字來自語系檔）
+const background = require('../../assets/images/home/welcome-bg-clean.png');
+const titleLogo = require('../../assets/images/home/title-logo.png');
 
-  const layoutName = isPhone
-    ? "手機窄版"
-    : isWide
-      ? "大型平板版"
-      : "小型平板版";
+const bgSize = Image.resolveAssetSource(background);
+const logoSize = Image.resolveAssetSource(titleLogo);
+const logoRatio = logoSize.width / logoSize.height;
+
+export default function WelcomeScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
+
+  // 背景主體在左右兩側，標題與按鈕放在中央欄，避開主體。
+  const columnWidth = Math.min(width * 0.44, 520);
+  const bgScale = Math.max(width / bgSize.width, height / bgSize.height);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
+    <View style={styles.root}>
+      {/* 背景：等比例放大到填滿畫面，多出的邊緣置中裁切 */}
+      <Image
+        source={background}
+        style={{
+          position: 'absolute',
+          left: (width - bgSize.width * bgScale) / 2,
+          top: (height - bgSize.height * bgScale) / 2,
+          width: bgSize.width * bgScale,
+          height: bgSize.height * bgScale,
+        }}
+      />
+      <StatusBar hidden />
+      <View
+        style={[
+          styles.center,
           {
-            paddingHorizontal: isPhone ? 16 : isWide ? 48 : 32,
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
+            paddingLeft: insets.left,
+            paddingRight: insets.right,
           },
-        ]}
-      >
-        <View
-          style={[
-            styles.header,
-            {
-              padding: isPhone ? 20 : 32,
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.title,
-              {
-                fontSize: isPhone ? 26 : 34,
-              },
-            ]}
-          >
-            普雷孔德
-          </Text>
-
-          <Text
-            style={[
-              styles.subtitle,
-              {
-                fontSize: isPhone ? 18 : 22,
-              },
-            ]}
-          >
-            Playcode Studio_兒童程式教育工作室
-          </Text>
-
-          <Text style={styles.description}>
-            這是手機與平板響應式版面測試畫面。
-          </Text>
-        </View>
-
-        <View style={styles.infoBox}>
-          <Text style={styles.infoTitle}>目前裝置資料</Text>
-          <Text style={styles.infoText}>螢幕寬度：{Math.round(width)} dp</Text>
-          <Text style={styles.infoText}>螢幕高度：{Math.round(height)} dp</Text>
-          <Text style={styles.infoText}>文字比例：{fontScale.toFixed(2)}</Text>
-          <Text style={styles.infoText}>版面類型：{layoutName}</Text>
-          <Text style={styles.infoText}>
-            方向：{isLandscape ? "橫向" : "直向"}
-          </Text>
-        </View>
-
-        <View
-          style={[
-            styles.contentArea,
-            {
-              flexDirection: isPhone ? "column" : "row",
-              gap: isPhone ? 16 : 24,
-            },
-          ]}
-        >
-          <View style={[styles.panel, { flex: isPhone ? 0 : 1 }]}>
-            <Text style={styles.panelTitle}>學習地圖</Text>
-            <Text style={styles.panelText}>
-              先確認這個區塊在手機上會上下排列，在平板上會左右排列。
-            </Text>
-
-            <TouchableOpacity style={styles.primaryButton}>
-              <Text style={styles.buttonText}>開始學習</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={[styles.panel, { flex: isPhone ? 0 : 1 }]}>
-            <Text style={styles.panelTitle}>今日進度</Text>
-            <Text style={styles.panelText}>
-              今日已完成：2／6 關
-            </Text>
-            <Text style={styles.panelText}>
-              今日使用時間：08／20 分鐘
-            </Text>
-
-            <TouchableOpacity style={styles.secondaryButton}>
-              <Text style={styles.secondaryButtonText}>查看進度</Text>
-            </TouchableOpacity>
+        ]}>
+        <View style={{ width: columnWidth, alignItems: 'center', gap: 20 }}>
+          <Image
+            source={titleLogo}
+            resizeMode="contain"
+            accessibilityRole="image"
+            accessibilityLabel={strings.welcome.logoLabel}
+            style={{ width: '100%', aspectRatio: logoRatio, maxHeight: height * 0.42 }}
+          />
+          <View style={styles.buttonRow}>
+            <View style={styles.primarySlot}>
+              <CandyButton label={strings.welcome.start} onPress={() => router.push('/worlds')} />
+            </View>
+            <View style={styles.secondarySlot}>
+              <CandyButton
+                variant="secondary"
+                label={strings.welcome.settings}
+                onPress={() => router.push('/settings')}
+              />
+            </View>
           </View>
         </View>
-
-        <View style={styles.blockTestArea}>
-          <Text style={styles.panelTitle}>程式積木點擊測試</Text>
-
-          <View
-            style={[
-              styles.blockRow,
-              {
-                flexDirection: isPhone ? "column" : "row",
-              },
-            ]}
-          >
-            <TouchableOpacity style={[styles.block, styles.moveBlock]}>
-              <Text style={styles.blockText}>向前移動</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.block, styles.turnBlock]}>
-              <Text style={styles.blockText}>向右轉</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.block, styles.loopBlock]}>
-              <Text style={styles.blockText}>重複</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#F7F9FC",
-  },
-  scrollContent: {
-    paddingVertical: 24,
-    paddingBottom: 48,
-  },
-  header: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    marginBottom: 20,
-  },
-  title: {
-    color: "#1A2B4C",
-    fontWeight: "700",
-  },
-  subtitle: {
-    color: "#007F64",
-    fontWeight: "700",
-    marginTop: 6,
-  },
-  description: {
-    color: "#5C6B82",
-    fontSize: 16,
-    marginTop: 14,
-    lineHeight: 24,
-  },
-  infoBox: {
-    backgroundColor: "#E8F8F3",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-  },
-  infoTitle: {
-    color: "#007F64",
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 10,
-  },
-  infoText: {
-    color: "#1A2B4C",
-    fontSize: 16,
-    lineHeight: 26,
-  },
-  contentArea: {
-    marginBottom: 20,
-  },
-  panel: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 20,
-    minHeight: 190,
-  },
-  panelTitle: {
-    color: "#1A2B4C",
-    fontSize: 21,
-    fontWeight: "700",
-    marginBottom: 12,
-  },
-  panelText: {
-    color: "#5C6B82",
-    fontSize: 16,
-    lineHeight: 25,
-    marginBottom: 8,
-  },
-  primaryButton: {
-    backgroundColor: "#00C49A",
-    minHeight: 56,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 16,
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  secondaryButton: {
-    backgroundColor: "#FFF3D2",
-    minHeight: 56,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 16,
-  },
-  secondaryButtonText: {
-    color: "#996700",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  blockTestArea: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 20,
-  },
-  blockRow: {
-    gap: 12,
-  },
-  block: {
-    minHeight: 56,
-    borderRadius: 14,
-    paddingHorizontal: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  moveBlock: {
-    backgroundColor: "#00C49A",
-  },
-  turnBlock: {
-    backgroundColor: "#FFC857",
-  },
-  loopBlock: {
-    backgroundColor: "#5F7CAC",
-  },
-  blockText: {
-    color: "#FFFFFF",
-    fontSize: 17,
-    fontWeight: "700",
-  },
+  root: { flex: 1 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  buttonRow: { flexDirection: 'row', width: '100%', gap: 12, alignItems: 'flex-start' },
+  primarySlot: { flex: 3 },
+  secondarySlot: { flex: 2 },
 });
