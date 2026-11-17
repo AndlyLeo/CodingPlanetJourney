@@ -1,5 +1,6 @@
 import { Pressable, View } from 'react-native';
 
+import { playSfx } from '../../audio/sound';
 import { candy } from '../../theme/candy';
 
 type Props = {
@@ -19,7 +20,10 @@ export function ChevronButton({ direction, size, onPress, accessibilityLabel }: 
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        playSfx('tap');
+        onPress();
+      }}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       hitSlop={10}

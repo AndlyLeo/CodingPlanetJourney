@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useMusic } from '../audio/use-music';
 import { CandyButton } from '../components/game/candy-button';
 import { strings } from '../i18n';
 
@@ -21,6 +22,7 @@ const logoRatio = logoSize.width / logoSize.height;
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  useMusic('welcome');
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
 

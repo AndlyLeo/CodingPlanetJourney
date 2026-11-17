@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { CandyButton } from '../components/game/candy-button';
 import { ComingSoonScreen, ComingSoonSlot } from '../components/game/coming-soon-screen';
 import { stopSpeaking } from '../audio/speech';
+import { setMusicEnabled, setSfxEnabled } from '../audio/sound';
 import { LEVELS_PER_WORLD, WORLD_COUNT } from '../data/worlds';
 import { strings } from '../i18n';
 import {
@@ -13,7 +14,13 @@ import {
   resetWorldProgress,
   unlockNextWorld,
 } from '../storage/progress-storage';
-import { loadVoiceEnabled, resetHowToSeen, saveVoiceEnabled } from '../storage/settings-storage';
+import {
+  loadMusicEnabled,
+  loadSfxEnabled,
+  loadVoiceEnabled,
+  resetHowToSeen,
+  saveVoiceEnabled,
+} from '../storage/settings-storage';
 
 // 暫時的設定頁：「選擇外觀」入口，加上測試用的進度按鈕。正式設定頁會取代這個檔案。
 export default function SettingsScreen() {
@@ -21,11 +28,15 @@ export default function SettingsScreen() {
   const [worldCount, setWorldCount] = useState(1);
   const [doneLevels, setDoneLevels] = useState(0);
   const [voice, setVoice] = useState(true);
+  const [sfx, setSfx] = useState(true);
+  const [music, setMusic] = useState(true);
 
   const refresh = useCallback(async () => {
     setWorldCount(await loadUnlockedWorldCount());
     setDoneLevels((await loadLevelStars('01')).filter((s) => s >= 1).length);
     setVoice(await loadVoiceEnabled());
+    setSfx(await loadSfxEnabled());
+    setMusic(await loadMusicEnabled());
   }, []);
 
   useFocusEffect(
@@ -50,6 +61,28 @@ export default function SettingsScreen() {
             setVoice(next);
             await saveVoiceEnabled(next);
             if (!next) stopSpeaking();
+          }}
+        />
+      </ComingSoonSlot>
+      <ComingSoonSlot>
+        <CandyButton
+          label={sfx ? strings.settings.sfxOn : strings.settings.sfxOff}
+          variant={sfx ? 'primary' : 'secondary'}
+          onPress={async () => {
+            const next = !sfx;
+            setSfx(next);
+            await setSfxEnabled(next);
+          }}
+        />
+      </ComingSoonSlot>
+      <ComingSoonSlot>
+        <CandyButton
+          label={music ? strings.settings.musicOn : strings.settings.musicOff}
+          variant={music ? 'primary' : 'secondary'}
+          onPress={async () => {
+            const next = !music;
+            setMusic(next);
+            await setMusicEnabled(next);
           }}
         />
       </ComingSoonSlot>

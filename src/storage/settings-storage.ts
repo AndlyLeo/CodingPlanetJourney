@@ -34,3 +34,35 @@ export async function markHowToSeen(): Promise<void> {
 export async function resetHowToSeen(): Promise<void> {
   await writeItem(HOWTO_KEY, '0');
 }
+
+// ---------- 音效與背景音樂（預設開啟） ----------
+const SFX_KEY = 'sfxEnabled';
+const MUSIC_KEY = 'musicEnabled';
+let sfxCache: boolean | null = null;
+let musicCache: boolean | null = null;
+
+export async function loadSfxEnabled(): Promise<boolean> {
+  if (sfxCache === null) {
+    const saved = await readItem(SFX_KEY);
+    sfxCache = saved === null ? true : saved === '1';
+  }
+  return sfxCache;
+}
+
+export async function saveSfxEnabled(on: boolean): Promise<void> {
+  sfxCache = on;
+  await writeItem(SFX_KEY, on ? '1' : '0');
+}
+
+export async function loadMusicEnabled(): Promise<boolean> {
+  if (musicCache === null) {
+    const saved = await readItem(MUSIC_KEY);
+    musicCache = saved === null ? true : saved === '1';
+  }
+  return musicCache;
+}
+
+export async function saveMusicEnabled(on: boolean): Promise<void> {
+  musicCache = on;
+  await writeItem(MUSIC_KEY, on ? '1' : '0');
+}

@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { playSfx } from '../../audio/sound';
 import { Text } from './app-text';
 import { candy } from '../../theme/candy';
 
@@ -17,7 +18,10 @@ export function CandyButton({ label, onPress, variant = 'primary', accessibility
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        playSfx('tap');
+        onPress();
+      }}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
       style={({ pressed }) => [

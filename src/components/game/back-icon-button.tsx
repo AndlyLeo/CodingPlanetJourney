@@ -1,5 +1,6 @@
 import { Pressable, View } from 'react-native';
 
+import { playSfx } from '../../audio/sound';
 import { candy } from '../../theme/candy';
 
 type Props = {
@@ -16,7 +17,10 @@ export function BackIconButton({ size, onPress, accessibilityLabel }: Props) {
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        playSfx('tap');
+        onPress();
+      }}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       hitSlop={12}

@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useMusic } from '../../../audio/use-music';
 import { Text } from '../app-text';
 import { speak, stopSpeaking } from '../../../audio/speech';
 import { playSfx } from '../../../audio/sound';
@@ -58,6 +59,7 @@ const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
 
 export function LevelScreen({ worldId, level, def }: { worldId: string; level: number; def: LevelDef }) {
   const router = useRouter();
+  useMusic('level');
   const insets = useSafeAreaInsets();
   const { width: W, height: H } = useWindowDimensions();
 
@@ -249,7 +251,6 @@ export function LevelScreen({ worldId, level, def }: { worldId: string; level: n
 
   const run = async () => {
     if (phaseRef.current !== 'edit') return;
-    playSfx('tap');
     const sim = simulate(def, values, parsed);
     if (sim.outcome === 'empty') {
       showNotice('empty');
@@ -317,7 +318,6 @@ export function LevelScreen({ worldId, level, def }: { worldId: string; level: n
 
   const resetAll = () => {
     if (phaseRef.current === 'running') return;
-    playSfx('tap');
     setValues(presetValues(def));
     resetHero();
     setPhase('edit');

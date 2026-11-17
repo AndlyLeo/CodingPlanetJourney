@@ -1,4 +1,5 @@
 import { Pressable, View } from 'react-native';
+import { playSfx } from '../../audio/sound';
 
 type Props = { size: number; onPress: () => void; accessibilityLabel: string };
 
@@ -14,7 +15,10 @@ export function GearButton({ size, onPress, accessibilityLabel }: Props) {
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        playSfx('tap');
+        onPress();
+      }}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       hitSlop={8}

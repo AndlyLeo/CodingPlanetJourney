@@ -1,6 +1,7 @@
 import { requireOptionalNativeModule } from 'expo-modules-core';
 
 import { strings } from '../i18n';
+import { duckMusic } from './sound';
 import { loadVoiceEnabled } from '../storage/settings-storage';
 
 // 語音說明（文字轉語音，TTS）。
@@ -8,7 +9,18 @@ import { loadVoiceEnabled } from '../storage/settings-storage';
 // 這裡會先檢查，沒有就直接略過，不去載入 expo-speech，APP 不會出錯，只是沒有聲音。
 
 type SpeechModule = {
-  speak: (text: string, options?: { language?: string; rate?: number; pitch?: number }) => void;
+  speak: (
+    text: string,
+    options?: {
+      language?: string;
+      rate?: number;
+      pitch?: number;
+      onStart?: () => void;
+      onDone?: () => void;
+      onStopped?: () => void;
+      onError?: (error: unknown) => void;
+    },
+  ) => void;
   stop: () => unknown;
 };
 
@@ -33,7 +45,16 @@ export async function speak(text: string): Promise<void> {
   if (!speech) return;
   try {
     speech.stop();
-    speech.speak(text, { language: strings.speechLanguage, rate: 0.9, pitch: 1.05 });
+    // 說話時壓低背景音樂，說完（或被中斷）再恢復
+    speech.speak(text, {
+      language: strings.speechLanguage,
+      rate: 0.9,
+      pitch: 1.05,
+      onStart: () => duckMusic(true),
+      onDone: () => duckMusic(false),
+      onStopped: () => duckMusic(false),
+      onError: () => duckMusic(false),
+    });
   } catch {
     // 語音引擎無法使用時略過
   }
