@@ -66,3 +66,49 @@ export async function saveMusicEnabled(on: boolean): Promise<void> {
   musicCache = on;
   await writeItem(MUSIC_KEY, on ? '1' : '0');
 }
+
+// ---------- 關卡音樂曲目（1 ~ 4，預設第 1 首） ----------
+const TRACK_KEY = 'levelMusicTrack';
+let trackCache: number | null = null;
+
+export async function loadLevelTrack(): Promise<number> {
+  if (trackCache === null) {
+    const n = Number(await readItem(TRACK_KEY));
+    trackCache = n >= 1 && n <= 4 ? Math.floor(n) : 1;
+  }
+  return trackCache;
+}
+
+export async function saveLevelTrack(track: number): Promise<void> {
+  trackCache = track;
+  await writeItem(TRACK_KEY, String(track));
+}
+
+// ---------- 語音聲音（空字串代表自動選擇） ----------
+const VOICE_ID_KEY = 'voiceId';
+
+export async function loadVoiceId(): Promise<string> {
+  return (await readItem(VOICE_ID_KEY)) ?? '';
+}
+
+export async function saveVoiceId(id: string): Promise<void> {
+  await writeItem(VOICE_ID_KEY, id);
+}
+
+// ---------- 語音音調風格（0 標準、1 可愛、2 卡通、3 小精靈，預設 1） ----------
+const STYLE_KEY = 'voiceStyle';
+let styleCache: number | null = null;
+
+export async function loadVoiceStyle(): Promise<number> {
+  if (styleCache === null) {
+    const raw = await readItem(STYLE_KEY);
+    const n = raw === null ? 1 : Number(raw);
+    styleCache = Number.isInteger(n) && n >= 0 && n <= 3 ? n : 1;
+  }
+  return styleCache;
+}
+
+export async function saveVoiceStyle(style: number): Promise<void> {
+  styleCache = style;
+  await writeItem(STYLE_KEY, String(style));
+}

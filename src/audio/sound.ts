@@ -1,8 +1,10 @@
 import { requireOptionalNativeModule } from 'expo-modules-core';
 
 import {
+  loadLevelTrack,
   loadMusicEnabled,
   loadSfxEnabled,
+  saveLevelTrack,
   saveMusicEnabled,
   saveSfxEnabled,
 } from '../storage/settings-storage';
@@ -16,14 +18,14 @@ import {
 export type SfxName =
   | 'tap' // 點按鈕
   | 'drop' // 把方塊放進格子
-  | 'step' // 角色前進一格
-  | 'turn' // 角色轉彎
   | 'gem' // 收集寶石
   | 'bump' // 撞到石頭或邊界
   | 'win' // 過關
   | 'fail'; // 失敗
 
-export type MusicName = 'welcome' | 'map' | 'level';
+// 背景音樂：welcome = 歡迎畫面（固定）；level = 關卡（曲目可在設定中選擇）。
+// 其他畫面（選擇外觀、區域選擇、區域地圖、設定）不指定音樂，會繼續播放前一個畫面的音樂。
+export type MusicName = 'welcome' | 'level';
 
 const SFX_VOLUME = 0.8;
 const MUSIC_VOLUME = 0.3; // 背景音樂音量（比音效小，不蓋過語音）
@@ -68,10 +70,6 @@ function sfxSource(name: SfxName): unknown {
         return require('../../assets/audio/sfx-tap.mp3');
       case 'drop':
         return require('../../assets/audio/sfx-drop.mp3');
-      case 'step':
-        return require('../../assets/audio/sfx-step.mp3');
-      case 'turn':
-        return require('../../assets/audio/sfx-turn.mp3');
       case 'gem':
         return require('../../assets/audio/sfx-gem.mp3');
       case 'bump':
@@ -87,15 +85,17 @@ function sfxSource(name: SfxName): unknown {
   return null;
 }
 
-function musicSource(name: MusicName): unknown {
+function levelSource(track: number): unknown {
   try {
-    switch (name) {
-      case 'welcome':
-        return require('../../assets/audio/bgm-welcome.mp3');
-      case 'map':
-        return require('../../assets/audio/bgm-map.mp3');
-      case 'level':
-        return require('../../assets/audio/bgm-level.mp3');
+    switch (track) {
+      case 1:
+        return require('../../assets/audio/bgm-level-1.mp3');
+      case 2:
+        return require('../../assets/audio/bgm-level-2.mp3');
+      case 3:
+        return require('../../assets/audio/bgm-level-3.mp3');
+      case 4:
+        return require('../../assets/audio/bgm-level-4.mp3');
     }
   } catch {
     return null;
@@ -103,21 +103,32 @@ function musicSource(name: MusicName): unknown {
   return null;
 }
 
+function musicSource(name: MusicName, track: number): unknown {
+  if (name === 'level') return levelSource(track) ?? levelSource(1); // 選的曲目檔案不存在時，改用第 1 首
+  try {
+    return require('../../assets/audio/bgm-welcome.mp3');
+  } catch {
+    return null;
+  }
+}
+
 // ---------- 狀態 ----------
 let sfxOn = true;
 let musicOn = true;
 let ducked = false;
 let wantedMusic: MusicName | null = null; // 目前畫面希望播放的音樂
-let currentMusic: MusicName | null = null; // 實際正在播放的音樂
+let currentKey: string | null = null; // 實際正在播放的音樂（含曲目編號）
+let levelTrack = 1; // 目前選擇的關卡音樂曲目
 let musicPlayer: Player | null = null;
 const sfxPlayers = new Map<SfxName, Player | null>();
 
 // APP 啟動時呼叫一次：讀取設定、設定音訊模式
 export async function initAudio(): Promise<void> {
   try {
-    const [sfx, music] = await Promise.all([loadSfxEnabled(), loadMusicEnabled()]);
+    const [sfx, music, track] = await Promise.all([loadSfxEnabled(), loadMusicEnabled(), loadLevelTrack()]);
     sfxOn = sfx;
     musicOn = music;
+    levelTrack = track;
     await getLib()?.setAudioModeAsync?.({ playsInSilentMode: true });
   } catch {
     // 略過
@@ -154,7 +165,7 @@ function stopMusicPlayer(): void {
     // 略過
   }
   musicPlayer = null;
-  currentMusic = null;
+  currentKey = null;
 }
 
 // 切換背景音樂；傳入 null 代表停止。同一首音樂已在播放時不會重頭開始。
@@ -165,19 +176,20 @@ export function playMusic(name: MusicName | null): void {
     stopMusicPlayer();
     return;
   }
-  if (name === currentMusic && musicPlayer) return;
+  const key = name === 'level' ? `level-${levelTrack}` : name;
+  if (key === currentKey && musicPlayer) return;
   const audio = getLib();
   if (!audio) return;
   stopMusicPlayer();
   try {
-    const source = musicSource(name);
+    const source = musicSource(name, levelTrack);
     if (!source) return;
     const player = audio.createAudioPlayer(source);
     player.loop = true;
     player.volume = ducked ? MUSIC_DUCK_VOLUME : MUSIC_VOLUME;
     player.play();
     musicPlayer = player;
-    currentMusic = name;
+    currentKey = key;
   } catch {
     // 略過
   }
@@ -203,9 +215,22 @@ export async function setMusicEnabled(on: boolean): Promise<void> {
   musicOn = on;
   await saveMusicEnabled(on);
   if (on) {
-    currentMusic = null;
+    currentKey = null;
     playMusic(wantedMusic);
   } else {
     stopMusicPlayer();
   }
+}
+
+// ---------- 關卡音樂曲目 ----------
+export function getLevelTrack(): number {
+  return levelTrack;
+}
+
+// 選擇關卡音樂曲目，並立刻播放該曲目試聽。
+// 試聽的音樂會一直播放到下一個有指定音樂的畫面（歡迎畫面或關卡）為止。
+export async function setLevelTrack(track: number): Promise<void> {
+  levelTrack = track;
+  await saveLevelTrack(track);
+  playMusic('level');
 }

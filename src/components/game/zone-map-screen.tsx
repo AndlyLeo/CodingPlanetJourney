@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useMusic } from '../../audio/use-music';
 import { Text } from './app-text';
 import { characters } from '../../data/characters';
 import { getLevelStates } from '../../data/levels';
@@ -45,7 +44,6 @@ export function ZoneMapScreen({ worldId }: { worldId: string }) {
 // 區域內部地圖：整張地圖完整顯示，不裁切。關卡、星星、進度、設定與返回按鈕、角色全部由程式繪製。
 function ZoneMap({ worldId, map }: { worldId: string; map: WorldMapDef }) {
   const router = useRouter();
-  useMusic('map');
   const insets = useSafeAreaInsets();
   const { width: W, height: H } = useWindowDimensions();
 

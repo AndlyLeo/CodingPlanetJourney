@@ -278,7 +278,6 @@ export function LevelScreen({ worldId, level, def }: { worldId: string; level: n
           await shakeHero();
           break;
         }
-        playSfx('step');
         await animateTo(f.row, f.col);
         setCollected(f.collected);
         if (f.collected.length > gemCount) {
@@ -286,7 +285,6 @@ export function LevelScreen({ worldId, level, def }: { worldId: string; level: n
           playSfx('gem');
         }
       } else {
-        playSfx('turn');
         await sleep(TURN_MS);
       }
       await sleep(60);

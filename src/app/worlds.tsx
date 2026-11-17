@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useMusic } from '../audio/use-music';
 import { Text } from '../components/game/app-text';
 import { BackIconButton } from '../components/game/back-icon-button';
 import { ChevronButton } from '../components/game/chevron-button';
@@ -30,7 +29,6 @@ const EDGE = 4; // 判斷是否已到最左／最右的容許值（dp）
 
 export default function WorldsScreen() {
   const router = useRouter();
-  useMusic('map');
   const insets = useSafeAreaInsets();
   const { width: W, height: H } = useWindowDimensions();
 
