@@ -11,7 +11,7 @@ type Props = {
 // （之前用 8 個方向偏移的做法，在尖角處會產生鋸齒狀的重影，所以改成放大剪影。）
 export function OutlinedStar({ size, face, outline, outlineWidth }: Props) {
   const ow = outlineWidth ?? size * 0.07;
-  const scale = 1 + (ow * 2) / (size * 0.45); // 外框粗細乘上 2 星星的外接半徑約為字級的 0.45 倍
+  const scale = 1 + (ow * 2) / (size * 0.45); // 外框粗細乘上 2 ，星星的外接半徑約為字級的 0.45 倍
   const w = size * 1.6;
   const h = size * 1.3;
   const base = {
